@@ -1,12 +1,15 @@
 //! Types related to task management
 
 use super::TaskContext;
+use crate::task::hash_map::HashMap;
 
 /// The task control block (TCB) of a task.
 #[derive(Copy, Clone)]
 pub struct TaskControlBlock {
     /// The task status in it's lifecycle
     pub task_status: TaskStatus,
+    ///
+    pub syscall_counts: HashMap,
     /// The task context
     pub task_cx: TaskContext,
 }

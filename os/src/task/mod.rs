@@ -10,6 +10,7 @@
 //! might not be what you expect.
 
 mod context;
+pub mod hash_map;
 mod switch;
 #[allow(clippy::module_inception)]
 mod task;
@@ -51,9 +52,11 @@ lazy_static! {
     /// Global variable: TASK_MANAGER
     pub static ref TASK_MANAGER: TaskManager = {
         let num_app = get_num_app();
-        let mut tasks = [TaskControlBlock {
+        let mut tasks = [
+            TaskControlBlock {
             task_cx: TaskContext::zero_init(),
             task_status: TaskStatus::UnInit,
+            syscall_counts: hash_map::HashMap::new(),
         }; MAX_APP_NUM];
         for (i, task) in tasks.iter_mut().enumerate() {
             task.task_cx = TaskContext::goto_restore(init_app_cx(i));
@@ -135,6 +138,22 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+    /// incr_syscall_count
+    fn incr_syscall_count(&self, syscall_type: usize) {
+        let inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        let mut current_task = inner.tasks[current];
+        current_task.syscall_counts.incr(syscall_type)
+    }
+
+    ///fetch_syscall_count
+    fn fetch_syscall_count(&self, syscall_type: usize) -> isize {
+        let inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        let mut current_task = inner.tasks[current];
+        current_task.syscall_counts.get(syscall_type).unwrap()
+    }
 }
 
 /// Run the first task in task list.
@@ -146,6 +165,16 @@ pub fn run_first_task() {
 /// or there is no `Ready` task and we can exit with all applications completed
 fn run_next_task() {
     TASK_MANAGER.run_next_task();
+}
+
+/// trace_syscall_count
+pub fn trace_syscall_count(syscall_type: usize) {
+    TASK_MANAGER.incr_syscall_count(syscall_type);
+}
+
+/// fetch_syscall_count
+pub fn fetch_syscall_count(syscall_type: usize) -> isize {
+    TASK_MANAGER.fetch_syscall_count(syscall_type)
 }
 
 /// Change the status of current `Running` task into `Ready`.
