@@ -34,7 +34,7 @@ impl HashMap {
     }
 
     /// get
-    pub fn get(& self, syscall_type: usize) -> Option<isize> {
+    pub fn get(&self, syscall_type: usize) -> Option<isize> {
         for (t, v) in self.inner.iter() {
             if syscall_type == *t {
                 return Some(*v);

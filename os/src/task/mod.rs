@@ -143,14 +143,18 @@ impl TaskManager {
     fn incr_syscall_count(&self, syscall_type: usize) {
         let mut inner = self.inner.exclusive_access();
         let current = inner.current_task;
-        inner.tasks[current].syscall_counts.incr(syscall_type)
+
+        let t = &mut inner.tasks[current];
+        t.syscall_counts.incr(syscall_type);
+        // inner.tasks[current].syscall_counts.incr(syscall_type)
     }
 
     ///fetch_syscall_count
     fn fetch_syscall_count(&self, syscall_type: usize) -> isize {
         let inner = self.inner.exclusive_access();
         let current = inner.current_task;
-        inner.tasks[current].syscall_counts.get(syscall_type).unwrap()
+        let t = &inner.tasks[current];
+        t.syscall_counts.get(syscall_type).unwrap()
     }
 }
 
