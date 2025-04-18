@@ -45,7 +45,7 @@ pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
     match _trace_request {
         2 => fetch_syscall_count(_id),
         1 => unsafe {
-            let mut t = _id as *mut u8;
+            let t = _id as *mut u8;
             *t = _data as u8;
             0
         },
@@ -53,6 +53,6 @@ pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
             let t = _id as *const u8;
             *t as isize
         },
-        _ => panic!("Unsupported sys_trace request: {}", _trace_request as usize),
+        _ => panic!("Unsupported sys_trace request: {}", _trace_request),
     }
 }

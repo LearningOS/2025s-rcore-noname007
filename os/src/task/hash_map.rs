@@ -34,13 +34,12 @@ impl HashMap {
     }
 
     /// get
-    pub fn get(&mut self, syscall_type: usize) -> Option<isize> {
-        for (t, v) in self.inner.iter_mut() {
+    pub fn get(& self, syscall_type: usize) -> Option<isize> {
+        for (t, v) in self.inner.iter() {
             if syscall_type == *t {
                 return Some(*v);
             }
         }
-
         None
     }
 }
