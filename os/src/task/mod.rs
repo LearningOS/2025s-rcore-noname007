@@ -10,6 +10,7 @@
 //! might not be what you expect.
 
 mod context;
+mod hash_map;
 mod switch;
 #[allow(clippy::module_inception)]
 mod task;
@@ -153,6 +154,24 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+    /// incr_syscall_count
+    fn incr_syscall_count(&self, syscall_type: usize) {
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+
+        let t = &mut inner.tasks[current];
+        t.syscall_counts.incr(syscall_type);
+        // inner.tasks[current].syscall_counts.incr(syscall_type)
+    }
+
+    ///fetch_syscall_count
+    fn fetch_syscall_count(&self, syscall_type: usize) -> isize {
+        let inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        let t = &inner.tasks[current];
+        t.syscall_counts.get(syscall_type).unwrap()
+    }
 }
 
 /// Run the first task in task list.
@@ -164,6 +183,16 @@ pub fn run_first_task() {
 /// or there is no `Ready` task and we can exit with all applications completed
 fn run_next_task() {
     TASK_MANAGER.run_next_task();
+}
+
+/// trace_syscall_count
+pub fn trace_syscall_count(syscall_type: usize) {
+    TASK_MANAGER.incr_syscall_count(syscall_type);
+}
+
+/// fetch_syscall_count
+pub fn fetch_syscall_count(syscall_type: usize) -> isize {
+    TASK_MANAGER.fetch_syscall_count(syscall_type)
 }
 
 /// Change the status of current `Running` task into `Ready`.

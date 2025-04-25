@@ -58,8 +58,11 @@ impl MemorySet {
         end_va: VirtAddr,
         permission: MapPermission,
     ) {
-        info!("building kernel app high mem stack insert framed area: {:#x?} {:#x?}", start_va, end_va);
-        
+        info!(
+            "building kernel app high mem stack insert framed area: {:#x?} {:#x?}",
+            start_va, end_va
+        );
+
         self.push(
             MapArea::new(start_va, end_va, MapType::Framed, permission),
             None,
