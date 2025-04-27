@@ -4,10 +4,7 @@ use crate::mm::{
     frame_usable_nums, translated_byte_buffer, MapPermission, PTEFlags, PageTable,
     VirtAddr,
 };
-use crate::task::{
-    change_program_brk, current_user_token, exit_current_and_run_next, fetch_syscall_count, mmap,
-    suspend_current_and_run_next,
-};
+use crate::task::{change_program_brk, current_user_token, exit_current_and_run_next, fetch_syscall_count, mmap, munmap, suspend_current_and_run_next};
 use crate::timer;
 use core::mem::size_of;
 
@@ -110,7 +107,6 @@ pub fn sys_mmap(_start: usize, _len: usize, _port: usize) -> isize {
     //check params
     let start_va = VirtAddr::from(_start);
 
-
     info!("{:x}{}",_start,start_va.aligned());
 
     if !start_va.aligned() || _port & (!0x07) != 0 || _port & 0x07 == 0 {
@@ -164,7 +160,21 @@ pub fn sys_mmap(_start: usize, _len: usize, _port: usize) -> isize {
 // YOUR JOB: Implement munmap.
 pub fn sys_munmap(_start: usize, _len: usize) -> isize {
     trace!("kernel: sys_munmap NOT IMPLEMENTED YET!");
-    -1
+    let start_va = VirtAddr::from(_start);
+    let end_va = VirtAddr::from(_start + _len - 1);
+
+    info!("kernel: sys_munmap [{},{}]", start_va.0, end_va.0);
+
+    let satp = current_user_token();
+    let pg = PageTable::from_token(satp);
+    let start_vpn = start_va.floor();
+    if let Some(_) = pg.translate(start_vpn) {
+        error!("sys_munmap: start addr already mapped!");
+    }
+
+    munmap(start_va, end_va);
+
+    0
 }
 /// change data segment size
 pub fn sys_sbrk(size: i32) -> isize {

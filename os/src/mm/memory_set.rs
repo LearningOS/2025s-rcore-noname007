@@ -68,6 +68,23 @@ impl MemorySet {
             None,
         );
     }
+
+    ///
+    pub fn delete_framed_area(&mut self, start_va: VirtAddr, end_va: VirtAddr) {
+        info!("deleting framed area [{:#x?},{:#x?})", start_va,end_va);
+        let start_vpn = start_va.floor();
+        let end_vpn = end_va.ceil();
+
+        for (idx,area) in self.areas.iter_mut().enumerate() {
+            if area.vpn_range.get_start() == start_vpn && area.vpn_range.get_end() == end_vpn {
+                info!("deleting framed area, found idx:{}",idx);
+                area.unmap(&mut self.page_table);
+                self.areas.remove(idx);
+                break;
+            }
+        }
+    }
+
     fn push(&mut self, mut map_area: MapArea, data: Option<&[u8]>) {
         map_area.map(&mut self.page_table);
         if let Some(data) = data {
@@ -75,6 +92,7 @@ impl MemorySet {
         }
         self.areas.push(map_area);
     }
+
     /// Mention that trampoline is not collected by areas.
     fn map_trampoline(&mut self) {
         self.page_table.map(

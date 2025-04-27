@@ -113,6 +113,14 @@ impl TaskManager {
         mm_set.insert_framed_area(start, end, port)
     }
 
+    ///
+    fn munmap(&self, start: VirtAddr, end: VirtAddr) {
+        let mut inner = self.inner.exclusive_access();
+        let cur = inner.current_task;
+        let mm_set = &mut inner.tasks[cur].memory_set;
+        mm_set.delete_framed_area(start, end)
+    }
+
     /// Find next task to run and return task id.
     ///
     /// In this case, we only return the first `Ready` task in task list.
@@ -234,6 +242,11 @@ pub fn current_user_token() -> usize {
 /// Get the current 'Running' task's trap contexts.
 pub fn current_trap_cx() -> &'static mut TrapContext {
     TASK_MANAGER.get_current_trap_cx()
+}
+
+///
+pub fn munmap(start: VirtAddr, end: VirtAddr) {
+    TASK_MANAGER.munmap(start, end);
 }
 
 ///
