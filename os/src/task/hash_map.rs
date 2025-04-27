@@ -1,7 +1,7 @@
 //! a simple hashmap used to count syscall
 //!
 //!
-//! 
+//!
 
 /// HashMap
 #[derive(Clone, Copy)]

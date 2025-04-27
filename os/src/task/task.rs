@@ -11,10 +11,10 @@ use crate::trap::{trap_handler, TrapContext};
 pub struct TaskControlBlock {
     /// Save task context
     pub task_cx: TaskContext,
-    
+
     ///
     pub syscall_counts: HashMap,
-    
+
     /// Maintain the execution status of the current process
     pub task_status: TaskStatus,
 
@@ -60,7 +60,7 @@ impl TaskControlBlock {
             MapPermission::R | MapPermission::W,
         );
         let task_control_block = Self {
-            syscall_counts:HashMap::new(),
+            syscall_counts: HashMap::new(),
             task_status,
             task_cx: TaskContext::goto_trap_return(kernel_stack_top),
             memory_set,

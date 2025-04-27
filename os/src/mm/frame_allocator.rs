@@ -42,6 +42,7 @@ trait FrameAllocator {
     fn new() -> Self;
     fn alloc(&mut self) -> Option<PhysPageNum>;
     fn dealloc(&mut self, ppn: PhysPageNum);
+    fn usable_frames(&self) -> usize;
 }
 /// an implementation for frame allocator
 pub struct StackFrameAllocator {
@@ -65,6 +66,7 @@ impl FrameAllocator for StackFrameAllocator {
             recycled: Vec::new(),
         }
     }
+
     fn alloc(&mut self) -> Option<PhysPageNum> {
         if let Some(ppn) = self.recycled.pop() {
             Some(ppn.into())
@@ -75,6 +77,7 @@ impl FrameAllocator for StackFrameAllocator {
             Some((self.current - 1).into())
         }
     }
+
     fn dealloc(&mut self, ppn: PhysPageNum) {
         let ppn = ppn.0;
         // validity check
@@ -83,6 +86,10 @@ impl FrameAllocator for StackFrameAllocator {
         }
         // recycle
         self.recycled.push(ppn);
+    }
+
+    fn usable_frames(&self) -> usize {
+        self.recycled.len() + (self.end - self.current)
     }
 }
 
@@ -115,6 +122,11 @@ pub fn frame_alloc() -> Option<FrameTracker> {
 /// Deallocate a physical page frame with a given ppn
 pub fn frame_dealloc(ppn: PhysPageNum) {
     FRAME_ALLOCATOR.exclusive_access().dealloc(ppn);
+}
+
+/// Get the number of usable frames
+pub fn frame_usable_nums() -> usize {
+    FRAME_ALLOCATOR.exclusive_access().usable_frames()
 }
 
 #[allow(unused)]

@@ -23,6 +23,7 @@ use lazy_static::*;
 use switch::__switch;
 pub use task::{TaskControlBlock, TaskStatus};
 
+use crate::mm::{MapPermission, VirtAddr};
 pub use context::TaskContext;
 
 /// The task manager, where all the tasks are managed.
@@ -102,6 +103,14 @@ impl TaskManager {
         let mut inner = self.inner.exclusive_access();
         let cur = inner.current_task;
         inner.tasks[cur].task_status = TaskStatus::Exited;
+    }
+
+    ///
+    fn mmap(&self, start: VirtAddr, end: VirtAddr, port: MapPermission) {
+        let mut inner = self.inner.exclusive_access();
+        let cur = inner.current_task;
+        let mm_set = &mut inner.tasks[cur].memory_set;
+        mm_set.insert_framed_area(start, end, port)
     }
 
     /// Find next task to run and return task id.
@@ -225,6 +234,11 @@ pub fn current_user_token() -> usize {
 /// Get the current 'Running' task's trap contexts.
 pub fn current_trap_cx() -> &'static mut TrapContext {
     TASK_MANAGER.get_current_trap_cx()
+}
+
+///
+pub fn mmap(start: VirtAddr, end: VirtAddr, port: MapPermission) {
+    TASK_MANAGER.mmap(start, end, port)
 }
 
 /// Change the current 'Running' task's program break
