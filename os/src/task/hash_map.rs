@@ -4,7 +4,6 @@
 //!
 
 /// HashMap
-#[derive(Clone, Copy)]
 pub struct HashMap {
     inner: [i32; 510],
 }
@@ -19,6 +18,7 @@ impl HashMap {
     /// incr
     pub fn incr(&mut self, syscall_type: usize) {
         self.inner[syscall_type] += 1;
+        println!("syscall_type call  {} count:{}",syscall_type,self.inner[syscall_type]);
     }
 
     /// get

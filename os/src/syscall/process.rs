@@ -67,7 +67,8 @@ pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
         let vpn = VirtAddr::from(_id).floor();
 
         if let Some(pte) = pg.translate(vpn) {
-            if !pte.is_valid() || ((pte.flags() & flag) == PTEFlags::empty()) {
+            let pte_flags  = pte.flags();
+            if !pte.is_valid() || (pte_flags & PTEFlags::U) == PTEFlags::empty()|| ((pte_flags & flag) == PTEFlags::empty()) {
                 return -1;
             }
         } else {
