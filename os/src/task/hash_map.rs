@@ -6,13 +6,13 @@
 /// HashMap
 #[derive(Clone, Copy)]
 pub struct HashMap {
-    inner: [i32; 411],
+    inner: [i32; 510],
 }
 
 impl HashMap {
     /// new
     pub fn new() -> Self {
-        let inner = [0; 411];
+        let inner  = [0; 510];
         HashMap { inner }
     }
 
