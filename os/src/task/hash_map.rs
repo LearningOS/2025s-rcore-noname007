@@ -5,13 +5,13 @@
 
 /// HashMap
 pub struct HashMap {
-    inner: [i32; 510],
+    inner: [i32; 412],
 }
 
 impl HashMap {
     /// new
     pub fn new() -> Self {
-        let inner = [0; 510];
+        let inner = [0; 412];
         HashMap { inner }
     }
 

@@ -74,7 +74,8 @@ impl MemorySet {
             start_va.0, end_va.0, start_vpn.0, end_vpn.0
         );
         for (idx, area) in self.areas.iter_mut().enumerate() {
-            if area.vpn_range.get_start() == start_vpn && area.vpn_range.get_end() == end_vpn {
+            let vpnrange = area.vpn_range;
+            if vpnrange.get_start() == start_vpn && vpnrange.get_end() == end_vpn {
                 // info!("deleting framed area, found idx:{}", idx);
                 area.unmap(&mut self.page_table);
                 self.areas.remove(idx);
