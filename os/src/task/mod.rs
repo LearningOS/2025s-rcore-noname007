@@ -114,7 +114,7 @@ impl TaskManager {
     }
 
     ///
-    fn munmap(&self, start: VirtAddr, end: VirtAddr) {
+    fn munmap(&self, start: VirtAddr, end: VirtAddr) -> isize {
         let mut inner = self.inner.exclusive_access();
         let cur = inner.current_task;
         let mm_set = &mut inner.tasks[cur].memory_set;
@@ -176,7 +176,6 @@ impl TaskManager {
     fn incr_syscall_count(&self, syscall_type: usize) {
         let mut inner = self.inner.exclusive_access();
         let current = inner.current_task;
-
         let t = &mut inner.tasks[current];
         t.syscall_counts.incr(syscall_type);
         // inner.tasks[current].syscall_counts.incr(syscall_type)
@@ -245,8 +244,8 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 }
 
 ///
-pub fn munmap(start: VirtAddr, end: VirtAddr) {
-    TASK_MANAGER.munmap(start, end);
+pub fn munmap(start: VirtAddr, end: VirtAddr) -> isize {
+    TASK_MANAGER.munmap(start, end)
 }
 
 ///

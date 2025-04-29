@@ -11,14 +11,13 @@ pub struct HashMap {
 impl HashMap {
     /// new
     pub fn new() -> Self {
-        let inner  = [0; 510];
+        let inner = [0; 510];
         HashMap { inner }
     }
 
     /// incr
     pub fn incr(&mut self, syscall_type: usize) {
         self.inner[syscall_type] += 1;
-        println!("syscall_type call  {} count:{}",syscall_type,self.inner[syscall_type]);
     }
 
     /// get

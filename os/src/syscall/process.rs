@@ -1,10 +1,12 @@
 //! Process management syscalls
 
 use crate::mm::{
-    frame_usable_nums, translated_byte_buffer, MapPermission, PTEFlags, PageTable,
-    VirtAddr,
+    frame_usable_nums, translated_byte_buffer, MapPermission, PTEFlags, PageTable, VirtAddr,
 };
-use crate::task::{change_program_brk, current_user_token, exit_current_and_run_next, fetch_syscall_count, mmap, munmap, suspend_current_and_run_next};
+use crate::task::{
+    change_program_brk, current_user_token, exit_current_and_run_next, fetch_syscall_count, mmap,
+    munmap, suspend_current_and_run_next,
+};
 use crate::timer;
 use core::mem::size_of;
 
@@ -67,8 +69,11 @@ pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
         let vpn = VirtAddr::from(_id).floor();
 
         if let Some(pte) = pg.translate(vpn) {
-            let pte_flags  = pte.flags();
-            if !pte.is_valid() || (pte_flags & PTEFlags::U) == PTEFlags::empty()|| ((pte_flags & flag) == PTEFlags::empty()) {
+            let pte_flags = pte.flags();
+            if !pte.is_valid()
+                || (pte_flags & PTEFlags::U) == PTEFlags::empty()
+                || ((pte_flags & flag) == PTEFlags::empty())
+            {
                 return -1;
             }
         } else {
@@ -98,17 +103,13 @@ pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
 
 // YOUR JOB: Implement mmap.
 pub fn sys_mmap(_start: usize, _len: usize, _port: usize) -> isize {
-    trace!(
-        "kernel: sys_mmap, start:{}, len:{},_port{:x}",
-        _start,
-        _len,
-        _port
+    info!(
+        "kernel: sys_mmap, va:[{:x}, +{:x}),_port:{:x}",
+        _start, _len, _port
     );
 
     //check params
     let start_va = VirtAddr::from(_start);
-
-    info!("{:x}{}",_start,start_va.aligned());
 
     if !start_va.aligned() || _port & (!0x07) != 0 || _port & 0x07 == 0 {
         error!(
@@ -118,21 +119,27 @@ pub fn sys_mmap(_start: usize, _len: usize, _port: usize) -> isize {
         return -1;
     }
 
+    let start_vpn = start_va.floor();
+    let end_va = VirtAddr::from(_start + _len);
+    let end_vpn = end_va.floor();
+
+    info!("vpn:[{:x},{:x})", start_vpn.0, end_vpn.0,);
+
     let satp = current_user_token();
     let pg = PageTable::from_token(satp);
-    let start_vpn = start_va.floor();
 
-    if let Some(_) = pg.translate(start_vpn) {
-        error!("sys_mmap: start addr already mapped!");
-        return -1;
+    if let Some(pte) = pg.translate(start_vpn) {
+        if pte.is_valid() {
+            error!("sys_mmap: start addr already mapped! {:x}", pte.bits);
+            return -1;
+        }
     }
 
-    let end_va = VirtAddr::from(_start + _len - 1);
-    info!("{:x}{}",_start + _len - 1,end_va.aligned());
-
-    if let Some(_) = pg.translate(end_va.floor()) {
-        error!("sys_mmap: end addr is already mapped!");
-        return -1;
+    if let Some(pte) = pg.translate(end_vpn) {
+        if pte.is_valid() {
+            error!("sys_mmap: end addr is already mapped! {:x}", pte.bits);
+            return -1;
+        }
     }
 
     let need_frames = end_va.ceil().0 - start_vpn.0;
@@ -160,22 +167,14 @@ pub fn sys_mmap(_start: usize, _len: usize, _port: usize) -> isize {
 
 // YOUR JOB: Implement munmap.
 pub fn sys_munmap(_start: usize, _len: usize) -> isize {
-    trace!("kernel: sys_munmap NOT IMPLEMENTED YET!");
     let start_va = VirtAddr::from(_start);
-    let end_va = VirtAddr::from(_start + _len - 1);
+    let end_va = VirtAddr::from(_start + _len);
+    info!("kernel: sys_munmap [{},{})", start_va.0, end_va.0);
 
-    info!("kernel: sys_munmap [{},{}]", start_va.0, end_va.0);
-
-    let satp = current_user_token();
-    let pg = PageTable::from_token(satp);
-    let start_vpn = start_va.floor();
-    if let Some(_) = pg.translate(start_vpn) {
-        error!("sys_munmap: start addr already mapped!");
+    if !start_va.aligned() {
+        return -1;
     }
-
-    munmap(start_va, end_va);
-
-    0
+    munmap(start_va, end_va)
 }
 /// change data segment size
 pub fn sys_sbrk(size: i32) -> isize {
