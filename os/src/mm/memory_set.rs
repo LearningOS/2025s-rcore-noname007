@@ -75,7 +75,7 @@ impl MemorySet {
         );
         for (idx, area) in self.areas.iter_mut().enumerate() {
             if area.vpn_range.get_start() == start_vpn && area.vpn_range.get_end() == end_vpn {
-                info!("deleting framed area, found idx:{}", idx);
+                // info!("deleting framed area, found idx:{}", idx);
                 area.unmap(&mut self.page_table);
                 self.areas.remove(idx);
                 return 0;
@@ -304,10 +304,10 @@ impl MapArea {
     ) -> Self {
         let start_vpn: VirtPageNum = start_va.floor();
         let end_vpn: VirtPageNum = end_va.ceil();
-        info!(
-            "va:[{:x},{:x}), vpn: [{:?}, {:?})",
-            start_va.0, end_va.0, start_vpn, end_vpn
-        );
+        // info!(
+        //     "va:[{:x},{:x}), vpn: [{:?}, {:?})",
+        //     start_va.0, end_va.0, start_vpn, end_vpn
+        // );
         Self {
             vpn_range: VPNRange::new(start_vpn, end_vpn),
             data_frames: BTreeMap::new(),
@@ -339,7 +339,7 @@ impl MapArea {
     }
     pub fn map(&mut self, page_table: &mut PageTable) {
         for vpn in self.vpn_range {
-            info!("MapArea::map vpn:{:x}", vpn.0);
+            // info!("MapArea::map vpn:{:x}", vpn.0);
             self.map_one(page_table, vpn);
         }
     }
