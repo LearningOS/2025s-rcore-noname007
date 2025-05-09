@@ -72,6 +72,29 @@ impl MemorySet {
             self.areas.remove(idx);
         }
     }
+
+    ///
+    pub fn delete_framed_area(&mut self, start_va: VirtAddr, end_va: VirtAddr) -> isize {
+        let start_vpn = start_va.floor();
+        let end_vpn = end_va.ceil();
+
+        info!(
+            "deleting framed area va:[{:x},{:x}) vpn:[{:x},{:x})",
+            start_va.0, end_va.0, start_vpn.0, end_vpn.0
+        );
+
+        for (idx, area) in self.areas.iter_mut().enumerate() {
+            let vpnrange = area.vpn_range;
+            if vpnrange.get_start() == start_vpn && vpnrange.get_end() == end_vpn {
+                // info!("deleting framed area, found idx:{}", idx);
+                area.unmap(&mut self.page_table);
+                self.areas.remove(idx);
+                return 0;
+            }
+        }
+
+        -1
+    }
     /// Add a new MapArea into this MemorySet.
     /// Assuming that there are no conflicts in the virtual address
     /// space.

@@ -7,6 +7,7 @@
 use super::__switch;
 use super::{fetch_task, TaskStatus};
 use super::{TaskContext, TaskControlBlock};
+use crate::mm::{MapPermission, VirtAddr};
 use crate::sync::UPSafeCell;
 use crate::trap::TrapContext;
 use alloc::sync::Arc;
@@ -43,6 +44,22 @@ impl Processor {
     ///Get current task in cloning semanteme
     pub fn current(&self) -> Option<Arc<TaskControlBlock>> {
         self.current.as_ref().map(Arc::clone)
+    }
+
+    ///
+    pub fn mmap(&self, start: VirtAddr, end: VirtAddr, port: MapPermission) {
+        let task = self.current.as_ref().unwrap();
+        let mut inner = task.inner_exclusive_access();
+        let mm_set = &mut inner.memory_set;
+        mm_set.insert_framed_area(start, end, port)
+    }
+
+    ///
+    pub fn munmap(&self, start: VirtAddr, end: VirtAddr) -> isize {
+        let task = self.current.as_ref().unwrap();
+        let mut inner = task.inner_exclusive_access();
+        let mm_set = &mut inner.memory_set;
+        mm_set.delete_framed_area(start, end)
     }
 }
 

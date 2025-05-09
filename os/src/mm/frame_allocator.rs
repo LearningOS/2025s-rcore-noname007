@@ -41,6 +41,8 @@ trait FrameAllocator {
     fn new() -> Self;
     fn alloc(&mut self) -> Option<PhysPageNum>;
     fn dealloc(&mut self, ppn: PhysPageNum);
+
+    fn usable_frames(&self) -> usize;
 }
 /// an implementation for frame allocator
 pub struct StackFrameAllocator {
@@ -83,6 +85,10 @@ impl FrameAllocator for StackFrameAllocator {
         // recycle
         self.recycled.push(ppn);
     }
+
+    fn usable_frames(&self) -> usize {
+        self.recycled.len() + (self.end - self.current)
+    }
 }
 
 type FrameAllocatorImpl = StackFrameAllocator;
@@ -115,7 +121,10 @@ pub fn frame_alloc() -> Option<FrameTracker> {
 pub fn frame_dealloc(ppn: PhysPageNum) {
     FRAME_ALLOCATOR.exclusive_access().dealloc(ppn);
 }
-
+/// Get the number of usable frames
+pub fn frame_usable_nums() -> usize {
+    FRAME_ALLOCATOR.exclusive_access().usable_frames()
+}
 #[allow(unused)]
 /// a simple test for frame allocator
 pub fn frame_allocator_test() {
