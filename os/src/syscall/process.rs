@@ -1,5 +1,5 @@
 //! Process management syscalls
-use crate::mm::{frame_usable_nums, translated_byte_buffer, MapPermission, VirtAddr};
+use crate::mm::{frame_usable_nums, translated_byte_buffer, MapPermission, PageTable, VirtAddr};
 use crate::task::{mmap, munmap};
 use crate::{
     loader::get_app_data_by_name,
@@ -11,7 +11,6 @@ use crate::{
     timer,
 };
 
-use crate::mm::page_table::PageTable;
 
 use alloc::sync::Arc;
 use core::mem::size_of;
